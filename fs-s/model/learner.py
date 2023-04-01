@@ -66,6 +66,4 @@ class AttentionLearner(nn.Module):
         hypercorr_decoded = self.decoder1(hypercorr_encoded)
         upsample_size = (hypercorr_decoded.size(-1) * 2,) * 2
         hypercorr_decoded = F.interpolate(hypercorr_decoded, upsample_size, mode='bilinear', align_corners=True)
-        logit_mask = self.decoder2(hypercorr_decoded)
-
-        return logit_mask
+        return self.decoder2(hypercorr_decoded)

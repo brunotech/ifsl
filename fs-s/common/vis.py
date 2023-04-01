@@ -17,8 +17,8 @@ class Visualizer:
             return
 
         cls.colors = {'red': (255, 50, 50), 'blue': (102, 140, 255)}
-        for key, value in cls.colors.items():
-            cls.colors[key] = tuple([c / 255 for c in cls.colors[key]])
+        for key in cls.colors:
+            cls.colors[key] = tuple(c / 255 for c in cls.colors[key])
 
         cls.mean_img = [0.485, 0.456, 0.406]
         cls.std_img = [0.229, 0.224, 0.225]
@@ -47,7 +47,7 @@ class Visualizer:
         elif type == 'mask':
             return np.array(tensor).astype(np.uint8)
         else:
-            raise Exception('Undefined tensor type: %s' % type)
+            raise Exception(f'Undefined tensor type: {type}')
 
     @classmethod
     def visualize_prediction(cls, spt_imgs, spt_masks, qry_img, qry_mask, pred_mask, cls_id, batch_idx, sample_idx, iou=None):
@@ -75,8 +75,8 @@ class Visualizer:
     def merge_image_pair(cls, pil_imgs):
         r""" Horizontally aligns a pair of pytorch tensor images (3, H, W) and returns PIL object """
 
-        canvas_width = sum([pil.size[0] for pil in pil_imgs])
-        canvas_height = max([pil.size[1] for pil in pil_imgs])
+        canvas_width = sum(pil.size[0] for pil in pil_imgs)
+        canvas_height = max(pil.size[1] for pil in pil_imgs)
         canvas = Image.new('RGB', (canvas_width, canvas_height))
 
         xpos = 0

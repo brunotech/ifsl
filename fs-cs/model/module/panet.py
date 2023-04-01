@@ -61,7 +61,9 @@ class PrototypeAlignmentLearner(nn.Module):
             logit_mask_bg = F.cosine_similarity(qry_feat, proto_bg, dim=2) * self.temperature
 
             # B, 1 + N, C
-            logit_mask = torch.cat((logit_mask_bg.mean(dim=1, keepdim=True), logit_mask_fg), dim=1)
+            return torch.cat(
+                (logit_mask_bg.mean(dim=1, keepdim=True), logit_mask_fg), dim=1
+            )
 
         else: # eager merge
             # B, N, S, C, H, W -> B, 1, 1, C, 1, 1
@@ -73,6 +75,4 @@ class PrototypeAlignmentLearner(nn.Module):
             proto = torch.cat((proto_bg, proto_fg), dim=1)
 
             # (B, 1, C, H, W), (B, (1 + N), C, 1, 1) -> B, (1 + N), H, W
-            logit_mask = F.cosine_similarity(qry_feat, proto, dim=2) * self.temperature
-
-        return logit_mask
+            return F.cosine_similarity(qry_feat, proto, dim=2) * self.temperature

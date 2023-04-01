@@ -27,7 +27,7 @@ class PriorGuidedFeatureEnrichmentNetwork(iFSLModule):
         elif args.backbone == 'resnet101':
             raise NotImplementedError
         else:
-            raise Exception('Unavailable backbone: %s' % args.backbone)
+            raise Exception(f'Unavailable backbone: {args.backbone}')
 
         for n, m in self.backbone3.named_modules():
             if 'conv2' in n:

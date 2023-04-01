@@ -50,20 +50,17 @@ class DatasetCOCO(Dataset):
         _support_classes = torch.tensor(_support_classes)
         query_class_presence = torch.tensor(query_class_presence)
 
-        batch = {'query_img': query_img,
-                 'query_mask': query_mask,
-                 'query_name': query_name,
-
-                 'org_query_imsize': org_qry_imsize,
-
-                 'support_imgs': support_imgs,
-                 'support_masks': support_masks,
-                 'support_names': support_names,
-
-                 'support_classes': _support_classes,
-                 'query_class_presence': query_class_presence}
-
-        return batch
+        return {
+            'query_img': query_img,
+            'query_mask': query_mask,
+            'query_name': query_name,
+            'org_query_imsize': org_qry_imsize,
+            'support_imgs': support_imgs,
+            'support_masks': support_masks,
+            'support_names': support_names,
+            'support_classes': _support_classes,
+            'query_class_presence': query_class_presence,
+        }
 
     def build_class_ids(self):
         nclass_val = self.nclass // self.nfolds
@@ -76,13 +73,10 @@ class DatasetCOCO(Dataset):
         assert 0 not in class_ids_val
         assert 0 not in class_ids_trn
 
-        if self.split == 'trn':
-            return class_ids_trn
-        else:
-            return class_ids_val
+        return class_ids_trn if self.split == 'trn' else class_ids_val
 
     def build_img_metadata_classwise(self):
-        img_metadata_classwise = dict()
+        img_metadata_classwise = {}
 
         with open(f'./data/splits/coco/{self.split}/fold{self.fold}.pkl', 'rb') as f:
             # class ids: 0, 1, 2, ..., 79
@@ -106,8 +100,7 @@ class DatasetCOCO(Dataset):
     def get_query_mask(self, query_img, query_cmask, rename_class):
         if self.split == 'trn':  # resize during training and retain orignal sizes during validation
             query_cmask = F.interpolate(query_cmask.unsqueeze(0).unsqueeze(0).float(), query_img.size()[-2:], mode='nearest').squeeze()
-        query_mask = self.generate_query_episodic_mask(query_cmask.float(), rename_class)
-        return query_mask
+        return self.generate_query_episodic_mask(query_cmask.float(), rename_class)
 
     def get_support_masks(self, support_imgs, _support_classes, support_cmasks, rename_class):
         support_masks = []
@@ -119,8 +112,7 @@ class DatasetCOCO(Dataset):
                 assert len(torch.unique(support_mask)) <= 2, f'{len(torch.unique(support_mask))} labels in support'
                 support_masks_c.append(support_mask)
             support_masks.append(torch.stack(support_masks_c))
-        support_masks = torch.stack(support_masks)
-        return support_masks
+        return torch.stack(support_masks)
 
     def generate_query_episodic_mask(self, mask, rename_class):
         # mask = mask.clone()
@@ -151,8 +143,9 @@ class DatasetCOCO(Dataset):
 
     def read_mask(self, name):
         mask_path = os.path.join(self.base_path, 'annotations', name)
-        mask = torch.tensor(np.array(Image.open(mask_path[:mask_path.index('.jpg')] + '.png')))
-        return mask
+        return torch.tensor(
+            np.array(Image.open(mask_path[: mask_path.index('.jpg')] + '.png'))
+        )
 
     def read_img(self, img_name):
         return Image.open(os.path.join(self.base_path, img_name)).convert('RGB')

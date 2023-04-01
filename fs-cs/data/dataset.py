@@ -34,8 +34,9 @@ class FSCSDatasetModule(LightningDataModule):
                                                      split='trn',
                                                      way=self.args.way,
                                                      shot=1)  # shot=1 fixed for training
-        dataloader = DataLoader(dataset, batch_size=self.args.bsz, shuffle=True, num_workers=8)
-        return dataloader
+        return DataLoader(
+            dataset, batch_size=self.args.bsz, shuffle=True, num_workers=8
+        )
 
     def val_dataloader(self):
         dataset = self.datasets[self.args.benchmark](self.datapath,
@@ -44,8 +45,7 @@ class FSCSDatasetModule(LightningDataModule):
                                                      split='val',
                                                      way=self.args.way,
                                                      shot=self.args.shot)
-        dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=8)
-        return dataloader
+        return DataLoader(dataset, batch_size=1, shuffle=False, num_workers=8)
 
     def test_dataloader(self):
         return self.val_dataloader()

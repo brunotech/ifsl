@@ -32,7 +32,7 @@ class HypercorrSqueezeNetwork(iFSLModule):
             self.extract_feats = extract_feat_res
             nbottlenecks = [3, 4, 23, 3]
         else:
-            raise Exception('Unavailable backbone: %s' % args.backbone)
+            raise Exception(f'Unavailable backbone: {args.backbone}')
 
         self.bottleneck_ids = reduce(add, list(map(lambda x: list(range(x)), nbottlenecks)))
         self.lids = reduce(add, [[i + 1] * x for i, x in enumerate(nbottlenecks)])

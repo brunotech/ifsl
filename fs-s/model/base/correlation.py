@@ -9,7 +9,7 @@ class Correlation:
         eps = 1e-5
 
         corrs = []
-        for idx, (query_feat, support_feat) in enumerate(zip(query_feats, support_feats)):
+        for query_feat, support_feat in zip(query_feats, support_feats):
             bsz, ch, hb, wb = support_feat.size()
             support_feat = support_feat.view(bsz, ch, -1)
             support_feat = support_feat / (support_feat.norm(dim=1, p=2, keepdim=True) + eps)

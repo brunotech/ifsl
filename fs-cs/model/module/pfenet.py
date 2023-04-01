@@ -11,12 +11,9 @@ class PFENetLearner(nn.Module):
         self.eps = 1e-6
         self.pyramid_bins = ppm_scales
         self.avgpool_list = []
-        for bin in self.pyramid_bins:
-            if bin > 1:
-                self.avgpool_list.append(
-                    nn.AdaptiveAvgPool2d(bin)
-                )
-
+        self.avgpool_list.extend(
+            nn.AdaptiveAvgPool2d(bin) for bin in self.pyramid_bins if bin > 1
+        )
         reduce_dim = 256
         fea_dim = 1024 + 512
         factor = 1
@@ -25,7 +22,7 @@ class PFENetLearner(nn.Module):
         self.init_merge = []
         self.beta_conv = []
         self.inner_cls = []
-        for bin in self.pyramid_bins:
+        for _ in self.pyramid_bins:
             self.init_merge.append(nn.Sequential(
                 nn.Conv2d(reduce_dim*2 + mask_add_num, reduce_dim, kernel_size=1, padding=0, bias=False),
                 nn.ReLU(inplace=True),
@@ -57,11 +54,15 @@ class PFENetLearner(nn.Module):
             nn.ReLU(inplace=True),
         )
         self.alpha_conv = []
-        for idx in range(len(self.pyramid_bins)-1):
-            self.alpha_conv.append(nn.Sequential(
-                nn.Conv2d(512, 256, kernel_size=1, stride=1, padding=0, bias=False),
-                nn.ReLU()
-            ))
+        self.alpha_conv.extend(
+            nn.Sequential(
+                nn.Conv2d(
+                    512, 256, kernel_size=1, stride=1, padding=0, bias=False
+                ),
+                nn.ReLU(),
+            )
+            for _ in range(len(self.pyramid_bins) - 1)
+        )
         self.alpha_conv = nn.ModuleList(self.alpha_conv)
         self.cls = nn.Sequential(
             nn.Conv2d(reduce_dim, reduce_dim, kernel_size=3, padding=1, bias=False),

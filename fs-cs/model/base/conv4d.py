@@ -29,15 +29,14 @@ class CenterPivotConv4d(nn.Module):
             self.len_w = len(idxw)
             self.idx = (idxw.repeat(self.len_h, 1) + idxh.repeat(self.len_w, 1).t() * wb).view(-1)
             self.idx_initialized = True
-        ct_pruned = ct.view(bsz, ch, ha, wa, -1).index_select(4, self.idx).view(bsz, ch, ha, wa, self.len_h, self.len_w)
-
-        return ct_pruned
+        return (
+            ct.view(bsz, ch, ha, wa, -1)
+            .index_select(4, self.idx)
+            .view(bsz, ch, ha, wa, self.len_h, self.len_w)
+        )
 
     def forward(self, x):
-        if self.stride[2:][-1] > 1:
-            out1 = self.prune(x)
-        else:
-            out1 = x
+        out1 = self.prune(x) if self.stride[2:][-1] > 1 else x
         bsz, inch, ha, wa, hb, wb = out1.size()
         out1 = out1.permute(0, 4, 5, 1, 2, 3).contiguous().view(-1, inch, ha, wa)
         out1 = self.conv1(out1)
@@ -54,5 +53,4 @@ class CenterPivotConv4d(nn.Module):
             out1 = out1.view(bsz, outch, o_ha, o_wa, -1).sum(dim=-1)
             out2 = out2.squeeze()
 
-        y = out1 + out2
-        return y
+        return out1 + out2

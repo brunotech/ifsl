@@ -6,8 +6,7 @@ class Evaluator:
     @classmethod
     def cls_prediction(cls, cls_score, gt):
         cls_pred = cls_score >= 0.5
-        pred_correct = cls_pred == gt
-        return pred_correct
+        return cls_pred == gt
 
     r""" Computes intersection and union between prediction and ground-truth """
     @classmethod
@@ -119,8 +118,7 @@ class AverageMeter:
         # relative class index -> absolute class id
         bsz = support_classes.shape[0]
         bg_classes = torch.zeros(bsz, 1).to(support_classes.device).type(support_classes.dtype)
-        class_dicts = torch.cat((bg_classes, support_classes), dim=1)
-        return class_dicts
+        return torch.cat((bg_classes, support_classes), dim=1)
 
     def intersect_and_union(self, pred_mask, gt_mask):
         intersect = pred_mask[pred_mask == gt_mask]

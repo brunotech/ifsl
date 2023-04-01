@@ -111,10 +111,8 @@ class CustomCheckpoint(ModelCheckpoint):
         if args.eval:
             self.modelpath = self.return_best_model_path(self.dirpath, self.filename)
             print('evaluating', self.modelpath)
-        # For training, set the filename as best_model.ckpt
-        # For resuming training, pytorch_lightning will automatically set the filename as best_model-v(k).ckpt
         else:
-            self.modelpath = os.path.join(self.dirpath, self.filename + '.ckpt')
+            self.modelpath = os.path.join(self.dirpath, f'{self.filename}.ckpt')
         self.lastmodelpath = os.path.join(self.dirpath, 'last.ckpt') if args.resume else None
 
     def return_best_model_path(self, dirpath, filename):

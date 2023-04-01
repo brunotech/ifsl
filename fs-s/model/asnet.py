@@ -43,7 +43,7 @@ class AttentiveSqueezeNetwork(pl.LightningModule):
             self.extract_feats = extract_feat_res
             nbottlenecks = [3, 4, 23, 3]
         else:
-            raise Exception('Unavailable backbone: %s' % args.backbone)
+            raise Exception(f'Unavailable backbone: {args.backbone}')
 
         self.bottleneck_ids = reduce(add, list(map(lambda x: list(range(x)), nbottlenecks)))
         self.lids = reduce(add, [[i + 1] * x for i, x in enumerate(nbottlenecks)])
@@ -78,7 +78,10 @@ class AttentiveSqueezeNetwork(pl.LightningModule):
             logit_mask = self(batch['query_img'], batch['support_imgs'][:, s_idx], batch['support_masks'][:, s_idx])
 
             if self.use_original_imgsize:
-                org_qry_imsize = tuple([batch['org_query_imsize'][1].item(), batch['org_query_imsize'][0].item()])
+                org_qry_imsize = (
+                    batch['org_query_imsize'][1].item(),
+                    batch['org_query_imsize'][0].item(),
+                )
                 logit_mask = F.interpolate(logit_mask, org_qry_imsize, mode='bilinear', align_corners=True)
 
             logit_mask_agg += logit_mask.argmax(dim=1).clone()

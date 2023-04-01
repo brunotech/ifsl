@@ -41,11 +41,22 @@ class Attention(nn.Module):
         str_q = (1, stride, stride)
         pad_q = (0, padding, padding)
 
-        self.short_cut = nn.Sequential(
-            nn.Conv3d(in_channels, out_channels, kernel_size=ksz_q, stride=str_q, padding=pad_q, bias=False),
-            nn.GroupNorm(groups, out_channels),
-            nn.ReLU(inplace=True)
-        ) if not retain_dim else nn.Identity()
+        self.short_cut = (
+            nn.Identity()
+            if retain_dim
+            else nn.Sequential(
+                nn.Conv3d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=ksz_q,
+                    stride=str_q,
+                    padding=pad_q,
+                    bias=False,
+                ),
+                nn.GroupNorm(groups, out_channels),
+                nn.ReLU(inplace=True),
+            )
+        )
 
         # Convolutional embeddings for (q, k, v)
         self.qhead = nn.Conv3d(in_channels, hidden_channels, kernel_size=ksz_q, stride=str_q, padding=pad_q, bias=bias)
@@ -93,8 +104,7 @@ class Attention(nn.Module):
     def attn_mask(self, x, mask, spatial_size):
         mask = F.interpolate(mask.float().unsqueeze(1), spatial_size, mode='bilinear', align_corners=True)
         mask = rearrange(mask, 'b 1 h w -> b 1 1 1 (h w)')
-        out = x.masked_fill_(mask == 0, -1e9)
-        return out
+        return x.masked_fill_(mask == 0, -1e9)
 
 
 class FeedForward(nn.Module):

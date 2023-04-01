@@ -35,8 +35,9 @@ class FSSDatasetModule(LightningDataModule):
                                                      split='trn',
                                                      shot=1,  # shot=1 fixed for training
                                                      use_original_imgsize=self.use_original_imgsize)
-        dataloader = DataLoader(dataset, batch_size=self.args.bsz, shuffle=True, num_workers=8)
-        return dataloader
+        return DataLoader(
+            dataset, batch_size=self.args.bsz, shuffle=True, num_workers=8
+        )
 
     def val_dataloader(self):
         dataset = self.datasets[self.args.benchmark](self.datapath,
@@ -45,8 +46,9 @@ class FSSDatasetModule(LightningDataModule):
                                                      split='val',
                                                      shot=self.args.shot,
                                                      use_original_imgsize=self.use_original_imgsize)
-        dataloader = DataLoader(dataset, batch_size=self.args.bsz, shuffle=False, num_workers=8)
-        return dataloader
+        return DataLoader(
+            dataset, batch_size=self.args.bsz, shuffle=False, num_workers=8
+        )
 
     def test_dataloader(self):
         return self.val_dataloader()

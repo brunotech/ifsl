@@ -151,7 +151,10 @@ class iFSLModule(pl.LightningModule):
         if self.training:
             spatial_size = batch['query_img'].shape[-2:]
         else:
-            spatial_size = tuple([batch['org_query_imsize'][1].item(), batch['org_query_imsize'][0].item()])
+            spatial_size = (
+                batch['org_query_imsize'][1].item(),
+                batch['org_query_imsize'][0].item(),
+            )
         return F.interpolate(logit_mask, spatial_size, mode='bilinear', align_corners=True)
 
     def compute_seg_objective(self, logit_mask, gt_mask):
@@ -169,10 +172,7 @@ class iFSLModule(pl.LightningModule):
         logit_fg = shared_fg_masks[:, :, 1]
         # B, 1, H, W
         logit_episodic_bg = shared_fg_masks[:, :, 0].mean(dim=1)
-        # B, (1 + N), H, W
-        logit_mask = torch.cat((logit_episodic_bg.unsqueeze(1), logit_fg), dim=1)
-
-        return logit_mask
+        return torch.cat((logit_episodic_bg.unsqueeze(1), logit_fg), dim=1)
 
     def get_progress_bar_dict(self):
         # to stop to show the version number in the progress bar

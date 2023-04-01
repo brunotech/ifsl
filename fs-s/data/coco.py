@@ -47,26 +47,22 @@ class DatasetCOCO(Dataset):
             support_masks[midx] = F.interpolate(smask.unsqueeze(0).unsqueeze(0).float(), support_imgs.size()[-2:], mode='nearest').squeeze()
         support_masks = torch.stack(support_masks)
 
-        batch = {'query_img': query_img,
-                 'query_mask': query_mask,
-                 'query_name': query_name,
-
-                 'org_query_imsize': org_qry_imsize,
-
-                 'support_imgs': support_imgs,
-                 'support_masks': support_masks,
-                 'support_names': support_names,
-                 'class_id': torch.tensor(class_sample)}
-
-        return batch
+        return {
+            'query_img': query_img,
+            'query_mask': query_mask,
+            'query_name': query_name,
+            'org_query_imsize': org_qry_imsize,
+            'support_imgs': support_imgs,
+            'support_masks': support_masks,
+            'support_names': support_names,
+            'class_id': torch.tensor(class_sample),
+        }
 
     def build_class_ids(self):
         nclass_trn = self.nclass // self.nfolds
         class_ids_val = [self.fold + self.nfolds * v for v in range(nclass_trn)]
         class_ids_trn = [x for x in range(self.nclass) if x not in class_ids_val]
-        class_ids = class_ids_trn if self.split == 'trn' else class_ids_val
-
-        return class_ids
+        return class_ids_trn if self.split == 'trn' else class_ids_val
 
     def build_img_metadata_classwise(self):
         with open('./data/splits/coco/%s/fold%d.pkl' % (self.split, self.fold), 'rb') as f:
@@ -81,8 +77,9 @@ class DatasetCOCO(Dataset):
 
     def read_mask(self, name):
         mask_path = os.path.join(self.base_path, 'annotations', name)
-        mask = torch.tensor(np.array(Image.open(mask_path[:mask_path.index('.jpg')] + '.png')))
-        return mask
+        return torch.tensor(
+            np.array(Image.open(mask_path[: mask_path.index('.jpg')] + '.png'))
+        )
 
     def load_frame(self, idx):
         # Fix (q, s) pair for all queries across different batch sizes for reproducibility
